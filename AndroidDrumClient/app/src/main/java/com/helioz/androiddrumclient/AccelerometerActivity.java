@@ -1,55 +1,67 @@
 package com.helioz.androiddrumclient;
 
-import android.view.View;
-import android.content.Context;
-import android.util.AttributeSet;
-import android.view.MotionEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
 import android.util.Log;
-import java.net.URL;
-import java.net.HttpURLConnection;
-import java.io.IOException;
+
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.BufferedReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import android.media.MediaPlayer;
-import java.util.Timer;
-import java.util.TimerTask;
+import android.content.Context;
 
 
 
+public class AccelerometerActivity extends AppCompatActivity implements SensorEventListener {
+    //MediaPlayer mp;
+    private SensorManager sensorManager;
+    private long lastUpdate;
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-/**
- * Created by jqjunk on 7/24/16.
- */
-public class DrumView extends View {
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        lastUpdate = System.currentTimeMillis();
+        Log.d("myTag", "created accelerometer activity");
 
-    final MediaPlayer mp = MediaPlayer.create(getContext(), R.raw.sound);
-
-    public DrumView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        //continue pinging a non-existent server to keep wifi antenna from sleeping
-        Timer t = new Timer();
-        t.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    URL url = new URL("http://10.0.0.5:5000/nothing");
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.disconnect();
-                }   catch (java.net.MalformedURLException error) {}
-                catch (IOException error) {}
-            }
-        },0,200);
     }
 
     @Override
-    public boolean onTouchEvent(MotionEvent e) {
+    public void onSensorChanged(SensorEvent event) {
 
-        if (e.getAction() == MotionEvent.ACTION_DOWN) {
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+
+            getAccelerometer(event);
+        }
+
+    }
+
+
+    private void getAccelerometer(SensorEvent event) {
+        float[] values = event.values;
+        // Movement
+        float x = values[0];
+        float y = values[1];
+        float z = values[2];
+
+        Log.d("myTag", "accelerometer called");
+
+        float accelationSquareRoot = (x * x + y * y + z * z)
+                / (SensorManager.GRAVITY_EARTH * SensorManager.GRAVITY_EARTH);
+        long actualTime = event.timestamp;
+        if (accelationSquareRoot >= 1) {
             long startTime = System.currentTimeMillis();
-            mp.start();
+            //mp = MediaPlayer.create(this, R.raw.sound);
+            //mp.start();
             try {
                 Log.d("myTag", callServer());
             } catch (IOException error) {
@@ -61,9 +73,8 @@ public class DrumView extends View {
             Integer elapsedTime = (Integer) ((int)(stopTime - startTime));
             Log.d("myTag", elapsedTime.toString());
         }
-
-        return true;
     }
+
 
     private String callServer() throws IOException {
         URL url = new URL("http://10.0.0.5:5000/direct");
@@ -96,4 +107,12 @@ public class DrumView extends View {
     }
 
 
+
+
+
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
+    }
 }
