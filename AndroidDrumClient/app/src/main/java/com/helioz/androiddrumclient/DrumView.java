@@ -15,7 +15,8 @@ import java.io.BufferedReader;
 import android.media.MediaPlayer;
 import java.util.Timer;
 import java.util.TimerTask;
-
+import android.media.AudioManager;
+import android.media.SoundPool;
 
 
 
@@ -26,22 +27,42 @@ import java.util.TimerTask;
 public class DrumView extends View {
 
     final MediaPlayer mp = MediaPlayer.create(getContext(), R.raw.sound);
+    AudioManager mAudioManager;
+    int mySound;
+
+    SoundPool mSoundPool;
 
     public DrumView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        //continue pinging a non-existent server to keep wifi antenna from sleeping
+
+        //setting up the sound controller
+        mAudioManager = (AudioManager)getContext().getSystemService(Context.AUDIO_SERVICE);
+        //SoundPool.Builder builder = new SoundPool.Builder();
+        //builder.setAudioAttributes(USAGE_GAME);
+        //builder.setMaxStreams(100);
+        mSoundPool = new SoundPool(100, AudioManager.STREAM_MUSIC, 0);
+
+        mySound = mSoundPool.load(getContext(), R.raw.sound, 1);
+
+        //= new SoundPool(100, AudioManager.STREAM_MUSIC, 0);
+
+        //continue pinging a non-existent url to keep wifi antenna from sleeping
         Timer t = new Timer();
         t.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 try {
-                    URL url = new URL("http://10.0.0.5:5000/nothing");
+                    URL url = new URL("http://10.0.0.4:13231/nothing");
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                    connection.setRequestMethod("GET");
+                    connection.setConnectTimeout(1000);
+                    connection.getInputStream();
                     connection.disconnect();
                 }   catch (java.net.MalformedURLException error) {}
                 catch (IOException error) {}
             }
         },0,200);
+
     }
 
     @Override
@@ -49,7 +70,9 @@ public class DrumView extends View {
 
         if (e.getAction() == MotionEvent.ACTION_DOWN) {
             long startTime = System.currentTimeMillis();
-            mp.start();
+            int streamVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+            mSoundPool.play(mySound,0.99f,0.99f,1,0,1f);
+
             try {
                 Log.d("myTag", callServer());
             } catch (IOException error) {
@@ -66,7 +89,7 @@ public class DrumView extends View {
     }
 
     private String callServer() throws IOException {
-        URL url = new URL("http://10.0.0.5:5000/direct");
+        URL url = new URL("http://10.0.0.4:13231/Users/jqjunk/Desktop/HeliozSoundnasium/repo/audiomixserver/audiomixserver/sounds/0.wav");
         HttpURLConnection connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(1000);
