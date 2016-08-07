@@ -29,6 +29,7 @@ public class DrumView extends View {
     final MediaPlayer mp = MediaPlayer.create(getContext(), R.raw.sound);
     AudioManager mAudioManager;
     int mySound;
+    HttpURLConnection connection;
 
     SoundPool mSoundPool;
 
@@ -45,6 +46,16 @@ public class DrumView extends View {
         mySound = mSoundPool.load(getContext(), R.raw.sound, 1);
 
         //= new SoundPool(100, AudioManager.STREAM_MUSIC, 0);
+
+        //set up connection to server
+        /*try {
+            URL url = new URL("http://10.0.0.4:13231/Users/jqjunk/Desktop/HeliozSoundnasium/repo/audiomixserver/audiomixserver/sounds/0.wav");
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setConnectTimeout(1000);
+        } catch (IOException error) {
+            Log.d("error", "Failed to establish connection to server");
+        }*/
 
         //continue pinging a non-existent url to keep wifi antenna from sleeping
         Timer t = new Timer();
@@ -74,11 +85,9 @@ public class DrumView extends View {
             mSoundPool.play(mySound,0.99f,0.99f,1,0,1f);
 
             try {
-                Log.d("myTag", callServer());
+                Log.d("server message", callServer());
             } catch (IOException error) {
-                //error.printStackTrace(System.out);
-                Log.d("myTag", "Failed to call server");
-                //throw new RuntimeException(error);
+                Log.d("error", "Failed to call server");
             }
             long stopTime = System.currentTimeMillis();
             Integer elapsedTime = (Integer) ((int)(stopTime - startTime));
@@ -90,21 +99,22 @@ public class DrumView extends View {
 
     private String callServer() throws IOException {
         URL url = new URL("http://10.0.0.4:13231/Users/jqjunk/Desktop/HeliozSoundnasium/repo/audiomixserver/audiomixserver/sounds/0.wav");
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection = (HttpURLConnection) url.openConnection();
         connection.setRequestMethod("GET");
         connection.setConnectTimeout(1000);
+
         InputStream in = new BufferedInputStream(connection.getInputStream());
+
         String responseBody = "Got no text from server";
         try {
             responseBody = readStream(in);
         } catch (java.net.SocketTimeoutException error) {
             error.printStackTrace(System.out);
-            //throw new java.net.SocketTimeoutException();
         } catch (IOException error) {
             error.printStackTrace(System.out);
-            //throw new RuntimeException(error);
+        } finally {
+            connection.disconnect();
         }
-        connection.disconnect();
         return responseBody;
     }
 
