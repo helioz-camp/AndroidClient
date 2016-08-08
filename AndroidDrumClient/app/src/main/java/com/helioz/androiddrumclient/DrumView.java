@@ -1,78 +1,62 @@
 package com.helioz.androiddrumclient;
 
-import android.view.View;
 import android.content.Context;
-import android.util.AttributeSet;
-import android.view.MotionEvent;
-import android.util.Log;
-import java.net.URL;
-import java.net.HttpURLConnection;
-import java.io.IOException;
-import java.io.BufferedInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.BufferedReader;
 import android.media.MediaPlayer;
-import java.util.Timer;
-import java.util.TimerTask;
-import android.media.AudioManager;
-import android.media.SoundPool;
+import android.net.DhcpInfo;
+import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
+import android.view.View;
 
-
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 /**
  * Created by jqjunk on 7/24/16.
  */
 public class DrumView extends View {
+    // Android likes to TAG each class for Logging
+    private static final String TAG = DrumView.class.getSimpleName();
+    private static final int LISTEN_UDP_PORT = 13232;
+    private static final int SEND_UDP_PORT = 13231;
+    private static final String SERVER_IP = "10.0.2.2";
+    private static final int SOCKET_TIMEOUT_MILLIS = 10;
+    private static final int RETRIES = 10;
 
     final MediaPlayer mp = MediaPlayer.create(getContext(), R.raw.sound);
-    AudioManager mAudioManager;
-    int mySound;
-    HttpURLConnection connection;
-
-    SoundPool mSoundPool;
+    DatagramSocket datagramSocket;
+    final AtomicLong requestCount = new AtomicLong(System.currentTimeMillis());
 
     public DrumView(Context context, AttributeSet attrs) {
         super(context, attrs);
 
-        //setting up the sound controller
-        mAudioManager = (AudioManager)getContext().getSystemService(Context.AUDIO_SERVICE);
-        //SoundPool.Builder builder = new SoundPool.Builder();
-        //builder.setAudioAttributes(USAGE_GAME);
-        //builder.setMaxStreams(100);
-        mSoundPool = new SoundPool(100, AudioManager.STREAM_MUSIC, 0);
+        try {
+            mp.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+                @Override
+                public void onPrepared(MediaPlayer mediaPlayer) {
+                    Log.d(TAG, "Media ready");
+                }
+            });
+            mp.prepareAsync();
+        } catch (Exception e) {
+            Log.e(TAG, "preparing media player", e);
+        }
 
-        mySound = mSoundPool.load(getContext(), R.raw.sound, 1);
+        try {
+            datagramSocket = new DatagramSocket(LISTEN_UDP_PORT);
+            datagramSocket.setBroadcast(true);
+            callServer("reset");
+        } catch (IOException e) {
+            Log.e(TAG, "DatagramSocket failed " + LISTEN_UDP_PORT, e);
+        }
 
-        //= new SoundPool(100, AudioManager.STREAM_MUSIC, 0);
-
-        //set up connection to server
-        /*try {
-            URL url = new URL("http://10.0.0.4:13231/Users/jqjunk/Desktop/HeliozSoundnasium/repo/audiomixserver/audiomixserver/sounds/0.wav");
-            connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setConnectTimeout(1000);
-        } catch (IOException error) {
-            Log.d("error", "Failed to establish connection to server");
-        }*/
-
-        //continue pinging a non-existent url to keep wifi antenna from sleeping
-        Timer t = new Timer();
-        t.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                try {
-                    URL url = new URL("http://10.0.0.4:13231/nothing");
-                    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                    connection.setRequestMethod("GET");
-                    connection.setConnectTimeout(1000);
-                    connection.getInputStream();
-                    connection.disconnect();
-                }   catch (java.net.MalformedURLException error) {}
-                catch (IOException error) {}
-            }
-        },0,200);
 
     }
 
@@ -81,52 +65,100 @@ public class DrumView extends View {
 
         if (e.getAction() == MotionEvent.ACTION_DOWN) {
             long startTime = System.currentTimeMillis();
-            int streamVolume = mAudioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            mSoundPool.play(mySound,0.99f,0.99f,1,0,1f);
+            try {
+                mp.start();
+            } catch (Exception ex) {
+                Log.w(TAG, "playing media player", ex);
+            }
 
             try {
-                Log.d("server message", callServer());
-            } catch (IOException error) {
-                Log.d("error", "Failed to call server");
+                callServer();
+            } catch (Exception error) {
+                Log.e(TAG, "Failed to call server", error);
             }
             long stopTime = System.currentTimeMillis();
-            Integer elapsedTime = (Integer) ((int)(stopTime - startTime));
-            Log.d("myTag", elapsedTime.toString());
+            Log.d(TAG, "Playing started in " + (stopTime - startTime) + "ms");
         }
 
         return true;
     }
 
-    private String callServer() throws IOException {
-        URL url = new URL("http://10.0.0.4:13231/Users/jqjunk/Desktop/HeliozSoundnasium/repo/audiomixserver/audiomixserver/sounds/0.wav");
-        connection = (HttpURLConnection) url.openConnection();
-        connection.setRequestMethod("GET");
-        connection.setConnectTimeout(1000);
+    InetAddress getBroadcastAddress() throws IOException {
+        WifiManager wifi = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
+        DhcpInfo dhcp = wifi.getDhcpInfo();
+        if (dhcp.ipAddress == 0) {
+            throw new IOException("No IP address from WiFi " + dhcp);
+        }
 
-        InputStream in = new BufferedInputStream(connection.getInputStream());
+        int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
+        return InetAddress.getByAddress(new byte[] {
+                (byte)(broadcast >>> 24),
+                (byte)(broadcast >>> 16),
+                (byte)(broadcast >>> 8),
+                (byte)broadcast});
+    }
+    private void callServer() {
+        callServer("play");
+    }
 
-        String responseBody = "Got no text from server";
+    private void callServer(final String command) {
+        InetAddress address = null;
         try {
-            responseBody = readStream(in);
-        } catch (java.net.SocketTimeoutException error) {
-            error.printStackTrace(System.out);
-        } catch (IOException error) {
-            error.printStackTrace(System.out);
-        } finally {
-            connection.disconnect();
+            try {
+                address = InetAddress.getByName(SERVER_IP);
+            } finally {
+                address = getBroadcastAddress();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Could not discover broadcast IP", e);
         }
-        return responseBody;
+        if (address == null) {
+            Log.e(TAG, "Impossible! Can't lookup server");
+            return;
+        }
+        final InetAddress finalAddress = address;
+        new AsyncTask<Void, Void, Void>() {
+
+            @Override
+            protected Void doInBackground(Void... objects) {
+                try {
+                    asyncCallServer(finalAddress, command);
+                } catch (Exception e) {
+                    Log.e(TAG, "could not call server with " + command, e);
+                }
+                return null;
+            }
+        }.execute();
     }
 
-    private String readStream(InputStream in) throws IOException {
-        BufferedReader r = new BufferedReader(new InputStreamReader(in));
-        StringBuilder total = new StringBuilder();
-        String line;
-        while ((line = r.readLine()) != null) {
-            total.append(line).append('\n');
-        }
-        return total.toString();
-    }
+    private void asyncCallServer(InetAddress address, String command) throws IOException  {
+        StringBuilder builder = new StringBuilder();
+        builder.append("audiomixclient/0 android 0\n")
+                .append(requestCount.incrementAndGet())
+                .append("\n")
+                .append(command + "\n");
+        byte[] bytes = builder.toString().getBytes();
+        long start = System.currentTimeMillis();
+        for (int attempt = 0; RETRIES > attempt; ++attempt) {
+            Log.d(TAG, "Sending UDP packet " + builder + " to " + address + " from " + datagramSocket.toString() + " attempt " + attempt);
+            datagramSocket.send(new DatagramPacket(bytes, bytes.length, address, SEND_UDP_PORT));
+            byte[] recvBuf = new byte[1 << 16];
+            DatagramPacket receivePacket = new DatagramPacket(recvBuf, recvBuf.length);
+            datagramSocket.setSoTimeout(SOCKET_TIMEOUT_MILLIS);
+            try {
+                datagramSocket.receive(receivePacket);
+            } catch (Exception e) {
+                Log.w(TAG, "failed to get response attempt " + attempt + " after " + (System.currentTimeMillis() - start) + "ms");
+                continue;
+            }
+            String response = new String(receivePacket.getData(), 0, receivePacket.getLength(), StandardCharsets.UTF_8);
+            Log.d(TAG, "Received " + receivePacket.getLength() + " bytes after " + (System.currentTimeMillis() - start) + "ms: " +
+                 response);
 
+            return;
+        }
+
+        Log.e(TAG, "No response from server " + address + " after " +  (System.currentTimeMillis() - start) + "ms");
+    }
 
 }
