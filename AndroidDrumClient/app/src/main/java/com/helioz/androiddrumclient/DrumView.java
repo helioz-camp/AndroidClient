@@ -26,7 +26,7 @@ public class DrumView extends View {
     private static final String TAG = DrumView.class.getSimpleName();
     private static final int LISTEN_UDP_PORT = 13232;
     private static final int SEND_UDP_PORT = 13231;
-    private static final String SERVER_IP = "10.0.2.2";
+    private static final String SERVER_IP = "192.168.0.100";
     private static final int SOCKET_TIMEOUT_MILLIS = 10;
     private static final int RETRIES = 10;
 
@@ -98,7 +98,7 @@ public class DrumView extends View {
                 (byte)broadcast});
     }
     private void callServer() {
-        callServer("play");
+        callServer("/Users/jqjunk/Desktop/HeliozSoundnasium/repo/audiomixserver/audiomixserver/sounds/FingerSnap01.wav");
     }
 
     private void callServer(final String command) {
