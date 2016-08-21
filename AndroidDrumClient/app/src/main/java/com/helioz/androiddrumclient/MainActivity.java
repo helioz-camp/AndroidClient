@@ -5,6 +5,7 @@ import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.widget.TextView;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -19,7 +20,7 @@ import java.net.URL;
 public class MainActivity extends AppCompatActivity {
     WifiManager.WifiLock wifiLock;
 
-    private static final String SERVER_IP = "172.20.10.5";    //.13
+    private static final String SERVER_IP = "10.0.0.4";    //.13
     private static final String SERVER_PORT = "13231";
 
     @Override
@@ -59,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
         drumView.setBackgroundColor(getResources().getColor(R.color.blue));
 
         String soundList = getSoundListFromServer();
+
+        TextView textView = (TextView) findViewById(R.id.textView);
+        textView.setText(soundList);
 
     }
 
