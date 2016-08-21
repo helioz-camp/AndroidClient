@@ -26,7 +26,7 @@ public class DrumView extends View {
     private static final String TAG = DrumView.class.getSimpleName();
     private static final int LISTEN_UDP_PORT = 13232;
     private static final int SEND_UDP_PORT = 13231;
-    private static final String SERVER_IP = "192.168.0.100";
+    private static final String SERVER_IP = "10.0.0.4";    //.13
     private static final int SOCKET_TIMEOUT_MILLIS = 10;
     private static final int RETRIES = 10;
 
@@ -56,9 +56,8 @@ public class DrumView extends View {
         } catch (IOException e) {
             Log.e(TAG, "DatagramSocket failed " + LISTEN_UDP_PORT, e);
         }
-
-
     }
+
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
@@ -98,7 +97,7 @@ public class DrumView extends View {
                 (byte)broadcast});
     }
     private void callServer() {
-        callServer("/Users/jqjunk/Desktop/HeliozSoundnasium/repo/audiomixserver/audiomixserver/sounds/FingerSnap01.wav");
+        callServer("/home/helioz/Helioz/audiomixserver/audiomixserver/sounds/gorgeous-kick.wav");
     }
 
     private void callServer(final String command) {
