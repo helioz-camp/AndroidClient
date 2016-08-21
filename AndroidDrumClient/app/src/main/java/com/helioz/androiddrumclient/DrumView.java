@@ -27,6 +27,7 @@ public class DrumView extends View {
     private static final int LISTEN_UDP_PORT = 13232;
     private static final int SEND_UDP_PORT = 13231;
     private static final String SERVER_IP = "10.0.0.4";    //.13
+    private static final String EMULATOR_SERVER_IP = "10.0.2.2";
     private static final int SOCKET_TIMEOUT_MILLIS = 10;
     private static final int RETRIES = 10;
 
@@ -52,7 +53,7 @@ public class DrumView extends View {
         try {
             datagramSocket = new DatagramSocket(LISTEN_UDP_PORT);
             datagramSocket.setBroadcast(true);
-            callServer("reset");
+            callServer("reset", "");
         } catch (IOException e) {
             Log.e(TAG, "DatagramSocket failed " + LISTEN_UDP_PORT, e);
         }
@@ -71,7 +72,7 @@ public class DrumView extends View {
             }
 
             try {
-                callServer();
+                callServer("play", Integer.toString((int)e.getAxisValue(0)));
             } catch (Exception error) {
                 Log.e(TAG, "Failed to call server", error);
             }
@@ -86,7 +87,8 @@ public class DrumView extends View {
         WifiManager wifi = (WifiManager) getContext().getSystemService(Context.WIFI_SERVICE);
         DhcpInfo dhcp = wifi.getDhcpInfo();
         if (dhcp.ipAddress == 0) {
-            throw new IOException("No IP address from WiFi " + dhcp);
+            // assume we are on the emulator
+            return InetAddress.getByName(EMULATOR_SERVER_IP);
         }
 
         int broadcast = (dhcp.ipAddress & dhcp.netmask) | ~dhcp.netmask;
@@ -96,18 +98,12 @@ public class DrumView extends View {
                 (byte)(broadcast >>> 8),
                 (byte)broadcast});
     }
-    private void callServer() {
-        callServer("/home/helioz/Helioz/audiomixserver/audiomixserver/sounds/gorgeous-kick.wav");
-    }
 
-    private void callServer(final String command) {
+
+    private void callServer(final String command, final String path) {
         InetAddress address = null;
         try {
-            try {
-                address = InetAddress.getByName(SERVER_IP);
-            } finally {
-                address = getBroadcastAddress();
-            }
+            address = getBroadcastAddress();
         } catch (Exception e) {
             Log.e(TAG, "Could not discover broadcast IP", e);
         }
@@ -121,7 +117,7 @@ public class DrumView extends View {
             @Override
             protected Void doInBackground(Void... objects) {
                 try {
-                    asyncCallServer(finalAddress, command);
+                    asyncCallServer(finalAddress, command, path);
                 } catch (Exception e) {
                     Log.e(TAG, "could not call server with " + command, e);
                 }
@@ -130,12 +126,12 @@ public class DrumView extends View {
         }.execute();
     }
 
-    private void asyncCallServer(InetAddress address, String command) throws IOException  {
+    private void asyncCallServer(InetAddress address, String command, String path) throws IOException  {
         StringBuilder builder = new StringBuilder();
-        builder.append("audiomixclient/0 android 0\n")
+        builder.append("audiomixclient/1 android 0\n")
                 .append(requestCount.incrementAndGet())
-                .append("\n")
-                .append(command + "\n");
+                .append("\n").append(command).append("\n")
+                .append(path).append("\n");
         byte[] bytes = builder.toString().getBytes();
         long start = System.currentTimeMillis();
         for (int attempt = 0; RETRIES > attempt; ++attempt) {
