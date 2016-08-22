@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicLong;
 
 
+
 /**
  * Created by jqjunk on 7/24/16.
  */
@@ -34,6 +35,8 @@ public class DrumView extends View {
     final MediaPlayer mp = MediaPlayer.create(getContext(), R.raw.sound);
     DatagramSocket datagramSocket;
     final AtomicLong requestCount = new AtomicLong(System.currentTimeMillis());
+
+    private String currentSound;
 
     public DrumView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -57,6 +60,12 @@ public class DrumView extends View {
         } catch (IOException e) {
             Log.e(TAG, "DatagramSocket failed " + LISTEN_UDP_PORT, e);
         }
+        currentSound = "0";
+
+    }
+
+    public void setCurrentSound (String sound) {
+        currentSound = sound;
     }
 
 
@@ -72,12 +81,13 @@ public class DrumView extends View {
             }
 
             try {
-                callServer("play", Integer.toString((int)e.getAxisValue(0)));
+                callServer("play", currentSound);
             } catch (Exception error) {
                 Log.e(TAG, "Failed to call server", error);
             }
             long stopTime = System.currentTimeMillis();
             Log.d(TAG, "Playing started in " + (stopTime - startTime) + "ms");
+
         }
 
         return true;
@@ -98,7 +108,6 @@ public class DrumView extends View {
                 (byte)(broadcast >>> 8),
                 (byte)broadcast});
     }
-
 
     private void callServer(final String command, final String path) {
         InetAddress address = null;

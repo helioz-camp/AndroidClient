@@ -5,6 +5,9 @@ import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.Log;
+import android.widget.ImageSwitcher;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.io.BufferedInputStream;
@@ -22,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
 
     private static final String SERVER_IP = "10.0.0.4";    //.13
     private static final String SERVER_PORT = "13231";
+    private static final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,18 +59,24 @@ public class MainActivity extends AppCompatActivity {
         wifiLock = ((WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getClass().getCanonicalName());
         wifiLock.acquire();
 
-        DrumView drumView = (DrumView) findViewById(R.id.drumView);
+        //RelativeLayout rl = (RelativeLayout) findViewById(R.id.activityMainLayout);
 
+        DrumView drumView = (DrumView) findViewById(R.id.drumView);
         drumView.setBackgroundColor(getResources().getColor(R.color.blue));
 
-        String soundList = getSoundListFromServer();
+        InstrumentSwitcherView instrumentSwitcherView = (InstrumentSwitcherView) findViewById(R.id.instrumentSwitcherView);
+        String[] soundList = getSoundListFromServer();
+        instrumentSwitcherView.soundList = soundList;
+        instrumentSwitcherView.setTargetDrumView(drumView);
 
-        TextView textView = (TextView) findViewById(R.id.textView);
-        textView.setText(soundList);
+        //keep just to make sure sound list is working
+        for(int i = 0; i < soundList.length; i++)
+            Log.d("SoundList", soundList[i]);
+
 
     }
 
-    String getSoundListFromServer() {
+    String[] getSoundListFromServer() {
         String responseBody = "Got no text from server";
         URL url;
         HttpURLConnection connection;
@@ -79,16 +89,19 @@ public class MainActivity extends AppCompatActivity {
             responseBody = readStream(in);
             connection.disconnect();
         } catch (java.net.SocketTimeoutException error) {
-            responseBody = "Connection timed out";
+            Log.e(TAG, "Connection timed out", error);
         } catch (MalformedURLException error){
-            responseBody = "Malformed URL";
+            Log.e(TAG, "Malformed URL", error);
         } catch (ProtocolException error) {
-            responseBody = "Protocol Exception";
+            Log.e(TAG, "Protocol Exception", error);
         } catch (IOException error) {
-            responseBody = "IOException";
+            Log.e(TAG, "IOException", error);
         }
 
-        return responseBody;
+        //remove html tags to leave only plain text
+        responseBody = android.text.Html.fromHtml(responseBody).toString();
+
+        return responseBody.split(" ");
     }
 
     private String readStream(InputStream in) throws IOException {
