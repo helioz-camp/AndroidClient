@@ -59,15 +59,20 @@ public class MainActivity extends AppCompatActivity {
         wifiLock = ((WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getClass().getCanonicalName());
         wifiLock.acquire();
 
-        //RelativeLayout rl = (RelativeLayout) findViewById(R.id.activityMainLayout);
-
-        DrumView drumView = (DrumView) findViewById(R.id.drumView);
-        drumView.setBackgroundColor(getResources().getColor(R.color.blue));
-
-        InstrumentSwitcherView instrumentSwitcherView = (InstrumentSwitcherView) findViewById(R.id.instrumentSwitcherView);
+        //get list of all playable sounds and their file paths from server
         String[] soundList = getSoundListFromServer();
-        instrumentSwitcherView.soundList = soundList;
-        instrumentSwitcherView.setTargetDrumView(drumView);
+
+        //initialize first drum and switcher
+        DrumView drumView1 = (DrumView) findViewById(R.id.drumView1);
+        InstrumentSwitcherView instrumentSwitcherView1 = (InstrumentSwitcherView) findViewById(R.id.instrumentSwitcherView1);
+        instrumentSwitcherView1.soundList = soundList;
+        instrumentSwitcherView1.setTargetDrumView(drumView1);
+
+        //initialize second drum and switcher
+        DrumView drumView2 = (DrumView) findViewById(R.id.drumView2);
+        InstrumentSwitcherView instrumentSwitcherView2 = (InstrumentSwitcherView) findViewById(R.id.instrumentSwitcherView2);
+        instrumentSwitcherView2.soundList = soundList;
+        instrumentSwitcherView2.setTargetDrumView(drumView2);
 
         //keep just to make sure sound list is working
         for(int i = 0; i < soundList.length; i++)

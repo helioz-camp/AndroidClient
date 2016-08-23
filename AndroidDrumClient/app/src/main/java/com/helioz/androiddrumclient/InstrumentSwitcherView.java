@@ -17,7 +17,7 @@ import android.util.Log;
 public class InstrumentSwitcherView extends TextView {
     private DrumView targetDrumView;
     private float x1,x2;
-    static final double MIN_SWIPE_DISTANCE = 20.0;
+    static final double MIN_SWIPE_DISTANCE = 150.0;
     public String[] soundList;
     private String currentInstrumentPath;
     private int currentInstrumentIndex;
