@@ -3,6 +3,7 @@ package com.helioz.androiddrumclient;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.DhcpInfo;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -11,6 +12,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -41,20 +43,23 @@ class Audiomixclient {
     private static final int RETRIES = 10;
     DatagramSocket datagramSocket;
     final AtomicLong requestCount = new AtomicLong(System.currentTimeMillis());
+    final Context context;
 
+    Context getContext() { return context; }
 
-    private Audiomixclient(Context context) {
+    private Audiomixclient(Context context_) {
+        context = context_;
         try {
             datagramSocket = new DatagramSocket(LISTEN_UDP_PORT);
             datagramSocket.setBroadcast(true);
-            callServer(context, "reset", "");
+            callServer(new Uri.Builder().path("reset").build());
         } catch (IOException e) {
             Log.e(TAG, "DatagramSocket failed " + LISTEN_UDP_PORT, e);
         }
     }
 
-    InetAddress getBroadcastAddress(Context context) throws IOException {
-        WifiManager wifi = (WifiManager)context.getSystemService(Context.WIFI_SERVICE);
+    InetAddress getBroadcastAddress() throws IOException {
+        WifiManager wifi = (WifiManager)getContext().getSystemService(Context.WIFI_SERVICE);
         DhcpInfo dhcp = wifi.getDhcpInfo();
         if (dhcp.ipAddress == 0) {
             // assume we are on the emulator
@@ -69,10 +74,10 @@ class Audiomixclient {
                 (byte)broadcast});
     }
 
-    public void callServer(Context context, final String command, final String path) {
+    public void callServer(final Uri command) {
         InetAddress address = null;
         try {
-            address = getBroadcastAddress(context);
+            address = getBroadcastAddress();
         } catch (Exception e) {
             Log.e(TAG, "Could not discover broadcast IP", e);
         }
@@ -86,7 +91,7 @@ class Audiomixclient {
             @Override
             protected Void doInBackground(Void... objects) {
                 try {
-                    asyncCallServer(finalAddress, command, path);
+                    asyncCallServer(finalAddress, command);
                 } catch (Exception e) {
                     Log.e(TAG, "could not call server with " + command, e);
                 }
@@ -95,12 +100,11 @@ class Audiomixclient {
         }.execute();
     }
 
-    private void asyncCallServer(InetAddress address, String command, String path) throws IOException  {
+    private void asyncCallServer(InetAddress address, Uri command) throws IOException  {
         StringBuilder builder = new StringBuilder();
-        builder.append("audiomixclient/1 android 0\n")
-                .append(requestCount.incrementAndGet())
-                .append("\n").append(command).append("\n")
-                .append(path).append("\n");
+        builder.append("audiomixclient/2 android 0\n")
+                .append(requestCount.incrementAndGet()).append("\n")
+                .append(command).append("\n");
         byte[] bytes = builder.toString().getBytes();
         long start = System.currentTimeMillis();
         for (int attempt = 0; RETRIES > attempt; ++attempt) {
