@@ -53,6 +53,16 @@ public class DrumView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent e) {
 
+        /*switch(e.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                return true;
+            case MotionEvent.ACTION_UP:
+                if (buttonType.equals("next"))
+                    parentInstrumentSwitcherView.nextInstrument();
+                else
+                    parentInstrumentSwitcherView.previousInstrument();
+                break;
+        }*/
         if (e.getAction() == MotionEvent.ACTION_DOWN) {
             long startTime = System.currentTimeMillis();
             try {

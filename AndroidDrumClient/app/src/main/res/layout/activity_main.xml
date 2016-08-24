@@ -14,35 +14,40 @@
     <com.helioz.androiddrumclient.InstrumentSwitcherView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight=".10"
+        android:layout_weight=".09"
         android:id="@+id/instrumentSwitcherView1"
-        android:text="Swipe left or right to change sounds"
         android:background="@color/black">
     </com.helioz.androiddrumclient.InstrumentSwitcherView>
 
     <com.helioz.androiddrumclient.DrumView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight=".40"
+        android:layout_weight=".39"
         android:id="@+id/drumView1"
+        android:background="@color/red">
+    </com.helioz.androiddrumclient.DrumView>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight=".04"
+        android:background="@color/black"
+        />
+
+    <com.helioz.androiddrumclient.DrumView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight=".39"
+        android:id="@+id/drumView2"
         android:background="@color/red">
     </com.helioz.androiddrumclient.DrumView>
 
     <com.helioz.androiddrumclient.InstrumentSwitcherView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight=".10"
+        android:layout_weight=".09"
         android:id="@+id/instrumentSwitcherView2"
-        android:text="Swipe left or right to change sounds"
         android:background="@color/black">
     </com.helioz.androiddrumclient.InstrumentSwitcherView>
-
-    <com.helioz.androiddrumclient.DrumView
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight=".40"
-        android:id="@+id/drumView2"
-        android:background="@color/red">
-    </com.helioz.androiddrumclient.DrumView>
 
 </LinearLayout>

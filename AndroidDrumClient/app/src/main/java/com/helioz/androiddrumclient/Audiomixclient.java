@@ -102,6 +102,7 @@ class Audiomixclient {
                 .append("\n").append(command).append("\n")
                 .append(path).append("\n");
         byte[] bytes = builder.toString().getBytes();
+
         long start = System.currentTimeMillis();
         for (int attempt = 0; RETRIES > attempt; ++attempt) {
             Log.d(TAG, "Sending UDP packet " + builder + " to " + address + " from " + datagramSocket + " attempt " + attempt);

@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
 import android.widget.ImageSwitcher;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -23,7 +24,7 @@ import java.net.URL;
 public class MainActivity extends AppCompatActivity {
     WifiManager.WifiLock wifiLock;
 
-    private static final String SERVER_IP = "10.0.0.4";    //.13
+    private static final String SERVER_IP = "10.0.0.5";    //.13
     private static final String SERVER_PORT = "13231";
     private static final String TAG = "MainActivity";
 
@@ -51,10 +52,7 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
 
-
-
         setContentView(R.layout.activity_main);
-
 
         wifiLock = ((WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE)).createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, getClass().getCanonicalName());
         wifiLock.acquire();
