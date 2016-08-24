@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class DrumView extends View {
     // Android likes to TAG each class for Logging
     private static final String TAG = DrumView.class.getSimpleName();
+    private static final String LONG_PLAY_INDICATOR = "Long_Play";
     final MediaPlayer mp = MediaPlayer.create(getContext(), R.raw.sound);
 
     private String currentSound;
@@ -55,37 +56,35 @@ public class DrumView extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
-
-        /*switch(e.getAction()) {
+        switch(e.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                if (currentSound.contains(LONG_PLAY_INDICATOR)) {
+                    //start playing sound until stop signal
+                }
+                else {
+                    long startTime = System.currentTimeMillis();
+                    try {
+                        mp.start();
+                    } catch (Exception ex) {
+                        Log.w(TAG, "playing media player", ex);
+                    }
+
+                    try {
+                        Audiomixclient.getInstance(getContext()).callServer(new Uri.Builder().path("play").appendQueryParameter("sample", currentSound).build());
+                    } catch (Exception error) {
+                        Log.e(TAG, "Failed to call server", error);
+                    }
+                    long stopTime = System.currentTimeMillis();
+                    Log.d(TAG, "Playing started in " + (stopTime - startTime) + "ms");
+                }
                 return true;
             case MotionEvent.ACTION_UP:
-                if (buttonType.equals("next"))
-                    parentInstrumentSwitcherView.nextInstrument();
-                else
-                    parentInstrumentSwitcherView.previousInstrument();
+                if (currentSound.contains(LONG_PLAY_INDICATOR))
+                    //send stop playing signal
                 break;
-        }*/
-        if (e.getAction() == MotionEvent.ACTION_DOWN) {
-            Log.d(TAG, "the current sound is " + currentSound);
-            long startTime = System.currentTimeMillis();
-            try {
-                mp.start();
-            } catch (Exception ex) {
-                Log.w(TAG, "playing media player", ex);
-            }
-
-            try {
-                Audiomixclient.getInstance(getContext()).callServer(new Uri.Builder().path("play").appendQueryParameter("sample", currentSound).build());
-            } catch (Exception error) {
-                Log.e(TAG, "Failed to call server", error);
-            }
-            long stopTime = System.currentTimeMillis();
-            Log.d(TAG, "Playing started in " + (stopTime - startTime) + "ms");
-
         }
-
         return true;
+
     }
 
 

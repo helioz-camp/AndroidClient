@@ -25,7 +25,7 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity {
     WifiManager.WifiLock wifiLock;
 
-    private static final String SERVER_IP = "10.0.0.5";    //.13
+    private static final String SERVER_IP = "10.0.0.13";    //.13
     private static final String SERVER_PORT = "13231";
     private static final String TAG = "MainActivity";
 
