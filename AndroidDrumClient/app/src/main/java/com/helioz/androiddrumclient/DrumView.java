@@ -3,6 +3,7 @@ package com.helioz.androiddrumclient;
 import android.content.Context;
 import android.media.MediaPlayer;
 import android.net.DhcpInfo;
+import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
@@ -14,6 +15,8 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.URI;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -72,7 +75,7 @@ public class DrumView extends View {
             }
 
             try {
-                Audiomixclient.getInstance(getContext()).callServer(getContext(), "play", currentSound);
+                Audiomixclient.getInstance(getContext()).callServer(new Uri.Builder().path("play").appendQueryParameter("sample", currentSound).build());
             } catch (Exception error) {
                 Log.e(TAG, "Failed to call server", error);
             }
