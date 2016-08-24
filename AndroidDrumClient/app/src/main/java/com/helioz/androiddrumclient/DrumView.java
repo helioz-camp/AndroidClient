@@ -67,6 +67,7 @@ public class DrumView extends View {
                 break;
         }*/
         if (e.getAction() == MotionEvent.ACTION_DOWN) {
+            Log.d(TAG, "the current sound is " + currentSound);
             long startTime = System.currentTimeMillis();
             try {
                 mp.start();

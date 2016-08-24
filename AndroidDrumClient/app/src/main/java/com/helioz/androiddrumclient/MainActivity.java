@@ -20,6 +20,7 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URL;
+import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
     WifiManager.WifiLock wifiLock;
@@ -59,6 +60,9 @@ public class MainActivity extends AppCompatActivity {
 
         //get list of all playable sounds and their file paths from server
         String[] soundList = getSoundListFromServer();
+        //first two lines from server will not be song names, so remove them
+        if (soundList.length > 4)
+            soundList = Arrays.copyOfRange(soundList, 4, soundList.length);
 
         //initialize first drum and switcher
         DrumView drumView1 = (DrumView) findViewById(R.id.drumView1);
@@ -84,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         URL url;
         HttpURLConnection connection;
         try {
-            url = new URL("http://" + SERVER_IP + ":" + SERVER_PORT);
+            url = new URL("http://" + SERVER_IP + ":" + SERVER_PORT + "/songs");
             connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             connection.setConnectTimeout(1000);
