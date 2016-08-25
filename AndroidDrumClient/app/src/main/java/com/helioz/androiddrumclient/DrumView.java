@@ -28,8 +28,9 @@ import java.util.concurrent.atomic.AtomicLong;
 public class DrumView extends View {
     // Android likes to TAG each class for Logging
     private static final String TAG = DrumView.class.getSimpleName();
-    private static final String LONG_PLAY_INDICATOR = "Long_Play";
+    private static final String LONG_PLAY_INDICATOR = "0";
     final MediaPlayer mp = MediaPlayer.create(getContext(), R.raw.sound);
+    Audiomixclient.PlaybackRequestState repeatingPlayback = null;
 
     private String currentSound;
 
@@ -53,16 +54,25 @@ public class DrumView extends View {
         currentSound = sound;
     }
 
+    void stopPlayback() {
+        synchronized (this) {
+            if (repeatingPlayback != null) {
+                repeatingPlayback.stopRepeating();
+                repeatingPlayback = null;
+            }
+        }
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent e) {
         switch(e.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 if (currentSound.contains(LONG_PLAY_INDICATOR)) {
-                    //start playing sound until stop signal
+                    stopPlayback();
+                    repeatingPlayback = Audiomixclient.getInstance(getContext()).repeatSound(currentSound);
                 }
                 else {
-                    long startTime = System.currentTimeMillis();
+                    StopWatch watch = new StopWatch();
                     try {
                         mp.start();
                     } catch (Exception ex) {
@@ -70,21 +80,28 @@ public class DrumView extends View {
                     }
 
                     try {
-                        Audiomixclient.getInstance(getContext()).callServer(new Uri.Builder().path("play").appendQueryParameter("sample", currentSound).build());
+                        Audiomixclient.getInstance(getContext()).playSound(currentSound);
                     } catch (Exception error) {
                         Log.e(TAG, "Failed to call server", error);
                     }
-                    long stopTime = System.currentTimeMillis();
-                    Log.d(TAG, "Playing started in " + (stopTime - startTime) + "ms");
+                    Log.d(TAG, "Initiated playing in " + watch);
                 }
                 return true;
             case MotionEvent.ACTION_UP:
-                if (currentSound.contains(LONG_PLAY_INDICATOR))
-                    //send stop playing signal
+                if (currentSound.contains(LONG_PLAY_INDICATOR)) {
+                    Audiomixclient.getInstance(getContext()).stopSound(repeatingPlayback);
+                    stopPlayback();
+                }
                 break;
         }
         return true;
 
+    }
+
+    @Override
+    protected void onDetachedFromWindow() {
+        super.onDetachedFromWindow();
+        stopPlayback();
     }
 
 
