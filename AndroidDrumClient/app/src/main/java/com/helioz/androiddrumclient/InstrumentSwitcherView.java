@@ -33,6 +33,10 @@ public class InstrumentSwitcherView extends LinearLayout {
     public String[] soundList;
     private int currentInstrumentIndex;
     private static final String TAG = "switcher view";
+    private Animation slide_in_left;
+    private Animation slide_in_right;
+    private Animation slide_out_left;
+    private Animation slide_out_right;
 
     public InstrumentSwitcherView (Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -55,12 +59,14 @@ public class InstrumentSwitcherView extends LinearLayout {
         instrumentLabelSwitcher.setBackgroundColor(R.color.black);
 
         // Declare the in and out animations and initialize them
-        Animation in = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left);
-        Animation out = AnimationUtils.loadAnimation(context, android.R.anim.slide_out_right);
+        slide_in_left = AnimationUtils.loadAnimation(context, android.R.anim.slide_in_left);
+        slide_in_right = AnimationUtils.loadAnimation(context, R.anim.slide_in_right);
+        slide_out_left = AnimationUtils.loadAnimation(context, R.anim.slide_out_left);
+        slide_out_right = AnimationUtils.loadAnimation(context, android.R.anim.slide_out_right);
 
         // set the animation type of textSwitcher
-        instrumentLabelSwitcher.setInAnimation(in);
-        instrumentLabelSwitcher.setOutAnimation(out);
+        instrumentLabelSwitcher.setInAnimation(slide_in_left);
+        instrumentLabelSwitcher.setOutAnimation(slide_out_right);
 
         instrumentLabelSwitcher.setText("0"); // Default initial sound
         LinearLayout.LayoutParams textViewParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, 0.34f);
@@ -118,6 +124,11 @@ public class InstrumentSwitcherView extends LinearLayout {
 
         String soundName =  soundFilePathForIndex(index);
         targetDrumView.setCurrentSound(soundName);
+
+        // set the animation type of textSwitcher
+        instrumentLabelSwitcher.setInAnimation(slide_in_left);
+        instrumentLabelSwitcher.setOutAnimation(slide_out_right);
+
         instrumentLabelSwitcher.setText(parseSoundName(soundName));
 
         return index;
@@ -132,6 +143,11 @@ public class InstrumentSwitcherView extends LinearLayout {
 
         String soundName =  soundFilePathForIndex(index);
         targetDrumView.setCurrentSound(soundName);
+
+        // set the animation type of textSwitcher
+        instrumentLabelSwitcher.setInAnimation(slide_in_right);
+        instrumentLabelSwitcher.setOutAnimation(slide_out_left);
+
         instrumentLabelSwitcher.setText(parseSoundName(soundName));
 
         return index;
