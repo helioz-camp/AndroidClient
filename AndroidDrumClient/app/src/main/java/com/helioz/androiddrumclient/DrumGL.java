@@ -14,6 +14,8 @@ public class DrumGL {
     static int mProgram;
     private static final String TAG = DrumGL.class.getSimpleName();
 
+    private static final float TIME_TO_SCALE_FACTOR = 0.01f;
+
     public static void checkGLError(String op) {
         int error;
         while ((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
@@ -148,7 +150,7 @@ public class DrumGL {
 
         GLES20.glUniform2fv(chosenPointHandle, 1, new float[] {view.touchX,view.getHeight()*1.f-view.touchY}, 0);
         GLES20.glUniform2fv(resolutionHandle, 1, new float[] {view.getWidth()*1.f,view.getHeight()*1.f}, 0);
-        GLES20.glUniform1f(scaleHandle, (System.currentTimeMillis() - view.touchStartMillis)/100);
+        GLES20.glUniform1f(scaleHandle, (System.currentTimeMillis() - view.touchStartMillis)* TIME_TO_SCALE_FACTOR);
 
         // Draw the triangle
         GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
