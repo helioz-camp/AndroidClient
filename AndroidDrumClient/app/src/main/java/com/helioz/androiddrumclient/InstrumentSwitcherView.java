@@ -30,6 +30,8 @@ public class InstrumentSwitcherView extends LinearLayout {
     private TextSwitcher instrumentLabelSwitcher;
     private float x1,x2;
     static final double MIN_SWIPE_DISTANCE = 150.0;
+    private final static int textColor = Color.rgb((int)(0.98f * 255), (int)(0.61 * 255), (int)(0.78f * 255));
+
     public String[] soundList;
     private int currentInstrumentIndex;
     private static final String TAG = "switcher view";
@@ -47,7 +49,7 @@ public class InstrumentSwitcherView extends LinearLayout {
         //params.addRule(LinearLayout.ALIGN_PARENT_LEFT, LinearLayout.TRUE);
         prevButton.setBackgroundResource(R.color.black);
         prevButton.setText("< Previous");
-        prevButton.setTextColor(Color.rgb(51,255,102));
+        prevButton.setTextColor(textColor);
         prevButton.setGravity(Gravity.CENTER_VERTICAL | Gravity.LEFT);
         prevButton.setPadding(20, 0, 0, 0);
         prevButton.setTextSize(20.0f);
@@ -77,7 +79,7 @@ public class InstrumentSwitcherView extends LinearLayout {
         //params.addRule(LinearLayout.ALIGN_PARENT_LEFT, LinearLayout.TRUE);
         nextButton.setBackgroundResource(R.color.black);
         nextButton.setText("Next >");
-        nextButton.setTextColor(Color.rgb(51,255,102));
+        nextButton.setTextColor(textColor);
         nextButton.setGravity(Gravity.CENTER_VERTICAL | Gravity.RIGHT);
         nextButton.setPadding(0, 0, 20, 0);
         nextButton.setTextSize(20.0f);
@@ -179,7 +181,7 @@ public class InstrumentSwitcherView extends LinearLayout {
             public View makeView() {
                 TextView instrumentLabel = new TextView(context, attrs);
                 instrumentLabel.setBackgroundResource(R.color.black);
-                instrumentLabel.setTextColor(Color.rgb(51,255,102));
+                instrumentLabel.setTextColor(textColor);
                 instrumentLabel.setGravity(Gravity.CENTER);
                 instrumentLabel.setPadding(0, 0, 0, 0);
                 instrumentLabel.setTextSize(20.0f);
