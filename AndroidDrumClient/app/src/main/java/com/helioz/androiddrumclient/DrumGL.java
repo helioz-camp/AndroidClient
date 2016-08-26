@@ -36,7 +36,7 @@ public class DrumGL {
                     "void main() {" +
                     "vec2 uv = gl_FragCoord.xy / resolution.xx - vec2(.5,0);" +
                     "vec2 displacement = chosenPoint - gl_FragCoord.xy;" +
-    "  gl_FragColor = mix(vec4(0.), vColor, cos(pow(length(displacement)/length(resolution)*scale,1.4)));" +
+    "  gl_FragColor = mix(vec4(0.), vColor, cos(pow(length(displacement)/length(resolution)*scale,1.414214)));" +
                     "}";
 
     public static int loadShader(int type, String shaderCode) {
