@@ -30,20 +30,21 @@ public class InstrumentSwitcherView extends LinearLayout {
         InstrumentSwitchButton prevButton = new InstrumentSwitchButton(context, attrs, this, "previous");
         LinearLayout.LayoutParams prevParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT, 0.33f);
         //params.addRule(LinearLayout.ALIGN_PARENT_LEFT, LinearLayout.TRUE);
-        prevButton.setBackgroundResource(R.color.blue);
+        prevButton.setBackgroundResource(R.color.helioz);
         this.addView(prevButton, prevParams);
 
         TextView instrumentLabel = new TextView(context, attrs);
         LinearLayout.LayoutParams textViewParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT, 0.34f);
         instrumentLabel.setBackgroundResource(R.color.black);
-        instrumentLabel.setText("Instrument Label");
+        instrumentLabel.setText(" HELIOZ ");
+        instrumentLabel.setTextSize(20);
         this.addView(instrumentLabel, textViewParams);
 
 
         InstrumentSwitchButton nextButton = new InstrumentSwitchButton(context, attrs, this, "next");
         LinearLayout.LayoutParams nextParams = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT, 0.33f);
         //params.addRule(LinearLayout.ALIGN_PARENT_LEFT, LinearLayout.TRUE);
-        nextButton.setBackgroundResource(R.color.blue);
+        nextButton.setBackgroundResource(R.color.helioz);
         this.addView(nextButton, nextParams);
     }
 

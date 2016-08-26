@@ -5,6 +5,8 @@ import android.media.MediaPlayer;
 import android.net.DhcpInfo;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
+import android.opengl.GLES20;
+import android.opengl.GLSurfaceView;
 import android.os.AsyncTask;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -20,17 +22,23 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.atomic.AtomicLong;
 
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
 
 
 /**
  * Created by jqjunk on 7/24/16.
  */
-public class DrumView extends View {
+public class DrumView extends GLSurfaceView {
     // Android likes to TAG each class for Logging
     private static final String TAG = DrumView.class.getSimpleName();
     private static final String LONG_PLAY_INDICATOR = "0";
     final MediaPlayer mp = MediaPlayer.create(getContext(), R.raw.sound);
     Audiomixclient.PlaybackRequestState repeatingPlayback = null;
+    public float touchX = 0;
+    public float touchY = 0;
+    public long touchStartMillis = 1000000;
+
 
     private String currentSound;
 
@@ -48,6 +56,29 @@ public class DrumView extends View {
         } catch (Exception e) {
             Log.e(TAG, "preparing media player", e);
         }
+
+        // Create an OpenGL ES 2.0 context
+        setEGLContextClientVersion(2);
+
+        setRenderer(new Renderer() {
+            @Override
+            public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+                GLES20.glClearColor(0.7f, 0.1f, 0.1f, 1.0f);
+                DrumGL.setup();
+            }
+
+            @Override
+            public void onSurfaceChanged(GL10 gl, int width, int height) {
+                GLES20.glViewport(0, 0, width, height);
+            }
+
+            @Override
+            public void onDrawFrame(GL10 gl) {
+                GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+                DrumGL.draw(DrumView.this);
+            }
+        });
+        setZOrderOnTop(true);
     }
 
     public void setCurrentSound (String sound) {
@@ -67,6 +98,12 @@ public class DrumView extends View {
     public boolean onTouchEvent(MotionEvent e) {
         switch(e.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                touchStartMillis = System.currentTimeMillis();
+                touchX = e.getX();
+                touchY = e.getY();
+
+                Log.d(TAG, "pointer down x=" + touchX + " y=" + touchY);
+
                 if (currentSound.contains(LONG_PLAY_INDICATOR)) {
                     stopPlayback();
                     repeatingPlayback = Audiomixclient.getInstance(getContext()).repeatSound(currentSound);
